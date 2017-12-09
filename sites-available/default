@@ -33,18 +33,18 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /var/www/html;
+	# root /var/www/html;
 
 	# Add index.php to the list if you are using PHP
-	index index.html index.htm index.nginx-debian.html;
+	# index index.html index.htm index.nginx-debian.html;
 
-	server_name msassay.com www.msassay.com;
+	# server_name msassay.com www.msassay.com;
 
-	location / {
+	# location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ =404;
-	}
+	#	try_files $uri $uri/ =404;
+	#}
 
 	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
 	#
@@ -64,11 +64,11 @@ server {
 	#	deny all;
 	#}
 
-    listen 443 ssl; # managed by Certbot
-ssl_certificate /etc/letsencrypt/live/msassay.com/fullchain.pem; # managed by Certbot
-ssl_certificate_key /etc/letsencrypt/live/msassay.com/privkey.pem; # managed by Certbot
-    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
-    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+    # listen 443 ssl; # managed by Certbot
+# ssl_certificate /etc/letsencrypt/live/msassay.com/fullchain.pem; # managed by Certbot
+# ssl_certificate_key /etc/letsencrypt/live/msassay.com/privkey.pem; # managed by Certbot
+  #  include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+   # ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
 
 
@@ -83,6 +83,36 @@ ssl_certificate_key /etc/letsencrypt/live/msassay.com/privkey.pem; # managed by 
     # } # managed by Certbot
 
 }
+
+server { 
+	listen 80;
+	server_name msassay.com;
+	client_max_body_size 20m;
+	location /.well-known/acme-challenge { 
+		root /var/www/letsencrypt;
+	}
+	location / {
+		proxy_pass http://127.0.0.1:6969; 
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade; 
+		proxy_set_header Connection 'upgrade'; 
+		proxy_set_header Host $host; 
+		proxy_cache_bypass $http_upgrade;
+	}
+
+	listen 443 ssl; # managed by Certbot
+	ssl_certificate /etc/letsencrypt/live/msassay.com/fullchain.pem; # managed by Certbot
+	ssl_certificate_key /etc/letsencrypt/live/msassay.com/privkey.pem; # managed by Certbot
+	include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+	ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+	if ($scheme != "https") {
+		return 301 https://$host$request_uri;
+	} # managed by Certbot 
+}
+
+
+
 
 
 # Virtual Host configuration for example.com
